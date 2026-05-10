@@ -26,9 +26,15 @@ def get_driver():
 
 def login(driver):
     driver.get(f"{BASE_URL}/login")
-    wait = WebDriverWait(driver, 20)
-    wait.until(EC.presence_of_element_located((By.ID, "email"))).send_keys(EMAIL)
-    driver.find_element(By.ID, "password").send_keys(PASSWORD)
+    wait = WebDriverWait(driver, 30)
+    try:
+        wait.until(EC.presence_of_element_located((By.ID, "email"))).send_keys(EMAIL)
+    except:
+        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='email']"))).send_keys(EMAIL)
+    try:
+        driver.find_element(By.ID, "password").send_keys(PASSWORD)
+    except:
+        driver.find_element(By.CSS_SELECTOR, "input[type='password']").send_keys(PASSWORD)
     driver.find_element(By.XPATH, "//button[@type='submit']").click()
     wait.until(EC.url_changes(f"{BASE_URL}/login"))
 
