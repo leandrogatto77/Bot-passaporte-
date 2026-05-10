@@ -38,5 +38,35 @@ def tentar_agendar():
     try:
         login(driver)
         wait = WebDriverWait(driver, 20)
-        driver.get(f"{BASE_URL}/vistaportal/pages/booking/Be​​​​​​​​​​​​​​​​
+        driver.get(f"{BASE_URL}/vistaportal/pages/booking/BeginBookingNoOtp.aspx")
+        Select(wait.until(EC.presence_of_element_located((By.ID, "ddlSede")))).select_by_visible_text("San Paolo")
+        time.sleep(2)
+        Select(wait.until(EC.presence_of_element_located((By.ID, "ddlCategoria")))).select_by_visible_text("Passaporti")
+        time.sleep(2)
+        Select(wait.until(EC.presence_of_element_located((By.ID, "ddlServizio")))).select_by_visible_text("Primo rilascio")
+        time.sleep(2)
+        driver.find_element(By.ID, "btnAvanti").click()
+        time.sleep(3)
+        try:
+            slot = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".day.available, .slot-available")))
+            slot.click()
+            time.sleep(2)
+            wait.until(EC.element_to_be_clickable((By.ID, "btnConferma"))).click()
+            log.info("Agendamento CONFIRMADO!")
+        except Exception:
+            log.warning("Nenhuma vaga disponível.")
+    except Exception as e:
+        log.error(f"Erro: {e}", exc_info=True)
+    finally:
+        driver.quit()
 
+def main():
+    log.info("Bot iniciado.")
+    schedule.every().monday.at("16:00").do(tentar_agendar)
+    tentar_agendar()
+    while True:
+        schedule.run_pending()
+        time.sleep(30)
+
+if __name__ == "__main__":
+    main()
