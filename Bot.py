@@ -15,4 +15,13 @@ EMAIL    = os.environ["PRENOTA_EMAIL"]
 PASSWORD = os.environ["PRENOTA_PASSWORD"]
 BASE_URL = "https://prenotaonline.esteri.it"
 
+def main():
+    log.info("Bot iniciado. Aguardando segunda-feira às 16:00...")
+    schedule.every().monday.at("16:00").do(tentar_agendar)
+        tentar_agendar()
+
+  while True:
+        schedule.run_pending()
+        time.sleep(30)
+
 def get_driver​​​​​​​​​​​​​​​​
