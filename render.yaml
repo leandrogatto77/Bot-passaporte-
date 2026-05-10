@@ -1,1 +1,13 @@
-
+services:
+  - type: worker
+    name: bot-passaporte
+    runtime: python
+    buildCommand: |
+      apt-get update && apt-get install -y chromium chromium-driver
+      pip install -r requirements.txt
+    startCommand: python Bot.py
+    envVars:
+      - key: PRENOTA_EMAIL
+        sync: false
+      - key: PRENOTA_PASSWORD
+        sync: false
