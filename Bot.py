@@ -21,6 +21,7 @@ PASSWORD = os.environ["PRENOTA_PASSWORD"]
 GMAIL_USER = os.environ["GMAIL_USER"]
 GMAIL_APP_PASSWORD = os.environ["GMAIL_APP_PASSWORD"]
 BASE_URL = "https://prenotami.esteri.it"
+LOGIN_URL = "https://prenotami.esteri.it/Home/Login"
 
 
 def get_driver():
@@ -48,18 +49,28 @@ def notificar(assunto, mensagem):
 
 
 def login(driver):
-    driver.get(BASE_URL)
+    driver.get(LOGIN_URL)
     wait = WebDriverWait(driver, 30)
-    xpath_login = "//a[contains(@href,'login') or contains(text(),'LOGIN')]"
-    wait.until(EC.element_to_be_clickable((By.XPATH, xpath_login))).click()
-    wait.until(EC.presence_of_element_located((By.NAME, "username")))
-    driver.find_element(By.NAME, "username").send_keys(EMAIL)
-    driver.find_element(By.ID, "kc-login").click()
-    wait.until(EC.presence_of_element_located((By.NAME, "password")))
-    driver.find_element(By.NAME, "password").send_keys(PASSWORD)
-    driver.find_element(By.ID, "kc-login").click()
+    log.info("Pagina de login carregada: %s", driver.current_url)
+    try:
+        wait.until(EC.presence_of_element_located((By.NAME, "username")))
+        driver.find_element(By.NAME, "username").send_keys(EMAIL)
+        driver.find_element(By.ID, "kc-login").click()
+        wait.until(EC.presence_of_element_located((By.NAME, "password")))
+        driver.find_element(By.NAME, "password").send_keys(PASSWORD)
+        driver.find_element(By.ID, "kc-login").click()
+        log.info("Login via Keycloak.")
+    except Exception:
+        try:
+            driver.find_element(By.ID, "email").send_keys(EMAIL)
+            driver.find_element(By.ID, "password").send_keys(PASSWORD)
+            driver.find_element(By.XPATH, "//button[@type='submit']").click()
+            log.info("Login via formulario padrao.")
+        except Exception as e:
+            log.error("Erro no login: %s", e)
+            raise
     wait.until(EC.url_contains("prenotami.esteri.it"))
-    log.info("Login realizado com sucesso.")
+    log.info("Login realizado. URL: %s", driver.current_url)
 
 
 def tentar_agendar():
@@ -70,8 +81,10 @@ def tentar_agendar():
         wait = WebDriverWait(driver, 20)
         driver.get(BASE_URL + "/Services")
         time.sleep(3)
+        log.info("Pagina Services carregada.")
 
         botoes = driver.find_elements(By.XPATH, "//a[contains(text(),'RESERVAR')]")
+        log.info("Botoes RESERVAR encontrados: %d", len(botoes))
         clicou = False
         for botao in botoes:
             try:
@@ -80,6 +93,7 @@ def tentar_agendar():
                 if "Passaporte" in texto and "Primeiro" in texto:
                     botao.click()
                     clicou = True
+                    log.info("Clicou em RESERVAR do Passaporte.")
                     break
             except Exception:
                 continue
@@ -153,9 +167,6 @@ def tentar_agendar():
 
 def main():
     log.info("Bot iniciado.")
-    # TESTE - rodar hoje as 21:00 UTC (18:00 Brasilia)
-    schedule.every().monday.at("21:00").do(tentar_agendar)
-    # Horarios reais toda segunda (Brasilia 16h = 19h UTC)
     horarios_utc = [
         "18:55", "19:00", "19:01", "19:02", "19:03",
         "19:05", "19:10", "19:15", "19:20", "19:30"
