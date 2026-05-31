@@ -1,1 +1,4 @@
-
+schedule
+requests
+beautifulsoup4
+playwright
