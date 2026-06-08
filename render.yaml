@@ -1,1 +1,17 @@
-
+services:
+  - type: worker
+    name: bot-passaporte
+    runtime: python
+    buildCommand: |
+      pip install -r requirements.txt
+      playwright install chromium --with-deps
+    startCommand: python Bot.py
+    envVars:
+      - key: PRENOTA_EMAIL
+        sync: false
+      - key: PRENOTA_PASSWORD
+        sync: false
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
